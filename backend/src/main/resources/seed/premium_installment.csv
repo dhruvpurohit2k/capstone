@@ -1,0 +1,5 @@
+installment_id,policy_id,installment_number,due_date,grace_period_end_date,scheduled_amount,paid_amount,payment_status,assessed_penalty_amount
+4001,3001,1,2026-11-20,2026-12-20,1250.00,1250.00,PAID,0.00
+4002,3001,2,2026-12-20,2027-01-20,1250.00,500.00,PARTIALLY_PAID,0.00
+4003,3001,3,2027-01-20,2027-02-20,1250.00,0.00,PENDING,0.00
+4004,3002,1,2026-11-20,2026-12-20,18000.00,18000.00,PAID,0.00

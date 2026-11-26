@@ -1,0 +1,4 @@
+recommendation_item_id,recommendation_request_id,product_id,rank_order,recommendation_reason,suitability,selected_for_registration
+7001,6001,201,1,Long-term protection aligned with income-replacement goal,HIGH,TRUE
+7002,6001,203,2,Savings option supports a secondary wealth goal,MEDIUM,FALSE
+7003,6002,202,1,Annual family health cover matches stated preference,HIGH,FALSE

@@ -1,0 +1,4 @@
+product_id,product_code,policy_name,policy_type,term_months,premium_frequency,premium_amount,sum_insured,min_entry_age,max_entry_age,active
+201,HD-TERM-001,HealthDekho Secure Term,TERM,240,MONTHLY,1250.00,5000000.00,18,60,TRUE
+202,HD-HEALTH-001,HealthDekho Family Health,HEALTH,12,YEARLY,18000.00,1000000.00,18,65,TRUE
+203,HD-SAV-001,HealthDekho Smart Savings,SAVINGS,120,QUARTERLY,7500.00,1500000.00,21,55,TRUE

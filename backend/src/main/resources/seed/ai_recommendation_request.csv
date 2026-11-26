@@ -1,0 +1,3 @@
+recommendation_request_id,customer_id,insurance_goals,preferred_term,preferred_policy_type,calculated_age,model_name,model_version,prompt_version,requested_at
+6001,1001,Family income protection,240,TERM,36,configured-chat-model,deployment-v1,rec-v1,2026-11-20 10:15:00+05:30
+6002,1003,Health coverage for self and parents,12,HEALTH,26,configured-chat-model,deployment-v1,rec-v1,2026-11-20 10:30:00+05:30

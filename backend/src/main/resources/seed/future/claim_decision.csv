@@ -1,0 +1,2 @@
+decision_id,claim_id,final_status,decision_reasons,processing_user_id,decision_timestamp
+8201,8001,APPROVED,All mandatory deterministic conditions satisfied.,OPS-USER-101,2027-03-16 14:30:00+05:30

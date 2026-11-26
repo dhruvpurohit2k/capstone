@@ -1,0 +1,2 @@
+assessment_id,claim_id,premium_compliance,policy_validity,document_verified,ai_summary,model_version
+8101,8001,COMPLIANT,VALID,TRUE,Policy and payment checks passed; manual review required.,deployment-v1

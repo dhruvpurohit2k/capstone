@@ -1,0 +1,4 @@
+customer_id,email,password,full_name,date_of_birth,phone,status
+1001,aarav.sharma@example.com,DemoCustomer1,Aarav Sharma,1990-04-15,9876501001,ACTIVE
+1002,meera.iyer@example.com,DemoCustomer2,Meera Iyer,1985-09-22,9876501002,ACTIVE
+1003,rohan.verma@example.com,DemoCustomer3,Rohan Verma,2000-01-10,9876501003,ACTIVE

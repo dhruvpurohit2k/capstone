@@ -1,0 +1,2 @@
+claim_id,claim_number,policy_id,customer_id,claim_date,claim_amount,document_status,claim_status
+8001,CLM-2027-0001,3002,1002,2027-03-15,85000.00,AVAILABLE,PENDING_REVIEW

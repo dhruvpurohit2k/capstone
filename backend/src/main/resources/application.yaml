@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: healthdekho
+  profiles:
+    default: development
+  jpa:
+    open-in-view: false
+  ai:
+    model:
+      chat: ${AI_CHAT_MODEL}
+    bedrock:
+      aws:
+        region: ${AWS_REGION}
+      converse:
+        chat:
+          options:
+            model: ${BEDROCK_MODEL_ID}
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}

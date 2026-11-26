@@ -1,0 +1,13 @@
+spring:
+  config:
+    activate:
+      on-profile: "development & !production"
+  datasource:
+    url: ${DEV_POSTGRES_URL:jdbc:postgresql://localhost:5432/healthdekho_dev}
+    username: ${DEV_POSTGRES_USER:healthdekho}
+    password: ${DEV_POSTGRES_PASSWORD:}
+  jpa:
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate.hbm2ddl.halt_on_error: true
