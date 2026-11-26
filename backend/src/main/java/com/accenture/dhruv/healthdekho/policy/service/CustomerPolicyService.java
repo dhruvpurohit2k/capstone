@@ -1,7 +1,10 @@
 package com.accenture.dhruv.healthdekho.policy.service;
 
+import com.accenture.dhruv.healthdekho.policy.dto.AvailablePolicyResponse;
+import com.accenture.dhruv.healthdekho.policy.dto.SubscribedPolicyResponse;
 import com.accenture.dhruv.healthdekho.policy.model.CustomerPolicy;
 import com.accenture.dhruv.healthdekho.policy.repository.CustomerPolicyRepository;
+import com.accenture.dhruv.healthdekho.product.repository.InsuranceProductRepository;
 import com.accenture.dhruv.healthdekho.seed.SeedCsv;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
@@ -15,9 +18,11 @@ import java.util.Optional;
 public class CustomerPolicyService {
 
     private final CustomerPolicyRepository repository;
+    private final InsuranceProductRepository products;
 
-    public CustomerPolicyService(CustomerPolicyRepository repository) {
+    public CustomerPolicyService(CustomerPolicyRepository repository, InsuranceProductRepository products) {
         this.repository = repository;
+        this.products = products;
     }
 
     @Transactional
@@ -36,6 +41,28 @@ public class CustomerPolicyService {
     @Transactional(readOnly = true)
     public List<CustomerPolicy> findAll() {
         return repository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public List<SubscribedPolicyResponse> findSubscribed(long customerId) {
+        return repository.findByCustomerId(customerId).stream()
+                .map(policy -> {
+                    var product = policy.getProduct();
+                    return new SubscribedPolicyResponse(policy.getId(), policy.getPolicyNumber(),
+                            product.getPolicyName(), product.getPolicyType(), product.getTermMonths(),
+                            policy.getStartDate(), policy.getMaturityDate(), policy.getPremiumFrequency(),
+                            policy.getPremiumAmount(), policy.getSumInsured(), policy.getStatus());
+                })
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<AvailablePolicyResponse> findAvailable(long customerId) {
+        return products.findAvailableForCustomer(customerId).stream()
+                .map(product -> new AvailablePolicyResponse(product.getId(), product.getProductCode(),
+                        product.getPolicyName(), product.getPolicyType(), product.getTermMonths(),
+                        product.getSumInsured(), product.getPremiumFrequency(), product.getPremiumAmount()))
+                .toList();
     }
 
     @Transactional

@@ -31,6 +31,17 @@ public class CustomerPolicyRepository {
                 .getResultList();
     }
 
+    public List<CustomerPolicy> findByCustomerId(long customerId) {
+        return entityManager.createQuery("""
+                select policy from CustomerPolicy policy
+                join fetch policy.product
+                where policy.customer.id = :customerId
+                order by policy.id
+                """, CustomerPolicy.class)
+                .setParameter("customerId", customerId)
+                .getResultList();
+    }
+
     public void delete(CustomerPolicy entity) {
         entityManager.remove(entity);
     }

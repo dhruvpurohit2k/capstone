@@ -31,6 +31,19 @@ public class InsuranceProductRepository {
                 .getResultList();
     }
 
+    public List<InsuranceProduct> findAvailableForCustomer(long customerId) {
+        return entityManager.createQuery("""
+                select product from InsuranceProduct product
+                where product.active = true and not exists (
+                    select 1 from CustomerPolicy policy
+                    where policy.customer.id = :customerId and policy.product = product
+                )
+                order by product.id
+                """, InsuranceProduct.class)
+                .setParameter("customerId", customerId)
+                .getResultList();
+    }
+
     public void delete(InsuranceProduct entity) {
         entityManager.remove(entity);
     }

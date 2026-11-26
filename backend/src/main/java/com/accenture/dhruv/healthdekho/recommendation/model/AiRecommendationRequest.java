@@ -1,6 +1,6 @@
 package com.accenture.dhruv.healthdekho.recommendation.model;
 
-import com.accenture.dhruv.healthdekho.user.model.Customer;
+import com.accenture.dhruv.healthdekho.customer.model.Customer;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;

@@ -1,14 +1,18 @@
-package com.accenture.dhruv.healthdekho.user.service;
+package com.accenture.dhruv.healthdekho.customer.service;
 
-import com.accenture.dhruv.healthdekho.user.model.Customer;
-import com.accenture.dhruv.healthdekho.user.repository.CustomerRepository;
+import com.accenture.dhruv.healthdekho.customer.model.Customer;
+import com.accenture.dhruv.healthdekho.customer.repository.CustomerRepository;
+import com.accenture.dhruv.healthdekho.exception.DuplicateEntityException;
 import com.accenture.dhruv.healthdekho.seed.SeedCsv;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.SQLException;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -16,10 +20,11 @@ import java.util.Optional;
 public class CustomerService {
 
     private final CustomerRepository repository;
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final PasswordEncoder passwordEncoder;
 
-    public CustomerService(CustomerRepository repository) {
+    public CustomerService(CustomerRepository repository, PasswordEncoder passwordEncoder) {
         this.repository = repository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional
@@ -27,12 +32,31 @@ public class CustomerService {
         if (entity.getId() != null) {
             throw new IllegalArgumentException("New records must use a generated ID");
         }
-        return repository.create(entity);
+        String email = entity.getEmail().toLowerCase(Locale.ROOT);
+        if (repository.findByEmail(email).isPresent()) {
+            throw duplicateEmail();
+        }
+        entity.setEmail(email);
+        try {
+            Customer customer = repository.create(entity);
+            repository.flush();
+            return customer;
+        } catch (DataIntegrityViolationException error) {
+            if (error.getMostSpecificCause() instanceof SQLException sql && "23505".equals(sql.getSQLState())) {
+                throw duplicateEmail();
+            }
+            throw error;
+        }
     }
 
     @Transactional(readOnly = true)
     public Optional<Customer> findById(long id) {
         return repository.findById(id);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Customer> findByEmail(String email) {
+        return repository.findByEmail(email.toLowerCase(Locale.ROOT));
     }
 
     @Transactional(readOnly = true)
@@ -56,6 +80,10 @@ public class CustomerService {
     @Transactional
     public void delete(long id) {
         repository.delete(requireExisting(id));
+    }
+
+    private DuplicateEntityException duplicateEmail() {
+        return new DuplicateEntityException("email", "A customer with this email already exists");
     }
 
     private Customer requireExisting(long id) {

@@ -16,8 +16,8 @@ import com.accenture.dhruv.healthdekho.recommendation.model.AiRecommendationItem
 import com.accenture.dhruv.healthdekho.recommendation.model.AiRecommendationRequest;
 import com.accenture.dhruv.healthdekho.recommendation.service.AiRecommendationItemService;
 import com.accenture.dhruv.healthdekho.recommendation.service.AiRecommendationRequestService;
-import com.accenture.dhruv.healthdekho.user.model.Customer;
-import com.accenture.dhruv.healthdekho.user.service.CustomerService;
+import com.accenture.dhruv.healthdekho.customer.model.Customer;
+import com.accenture.dhruv.healthdekho.customer.service.CustomerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;

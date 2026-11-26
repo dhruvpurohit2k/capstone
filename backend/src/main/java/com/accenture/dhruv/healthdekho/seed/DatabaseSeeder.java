@@ -6,7 +6,7 @@ import com.accenture.dhruv.healthdekho.premium.service.PremiumPaymentService;
 import com.accenture.dhruv.healthdekho.product.service.InsuranceProductService;
 import com.accenture.dhruv.healthdekho.recommendation.service.AiRecommendationItemService;
 import com.accenture.dhruv.healthdekho.recommendation.service.AiRecommendationRequestService;
-import com.accenture.dhruv.healthdekho.user.service.CustomerService;
+import com.accenture.dhruv.healthdekho.customer.service.CustomerService;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;

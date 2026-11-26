@@ -1,6 +1,6 @@
-package com.accenture.dhruv.healthdekho.user.repository;
+package com.accenture.dhruv.healthdekho.customer.repository;
 
-import com.accenture.dhruv.healthdekho.user.model.Customer;
+import com.accenture.dhruv.healthdekho.customer.model.Customer;
 import jakarta.persistence.EntityManager;
 import org.springframework.stereotype.Repository;
 
@@ -24,6 +24,14 @@ public class CustomerRepository {
 
     public Optional<Customer> findById(long id) {
         return Optional.ofNullable(entityManager.find(Customer.class, id));
+    }
+
+    public Optional<Customer> findByEmail(String email) {
+        return entityManager.createQuery("select c from Customer c where lower(c.email) = :email", Customer.class)
+                .setParameter("email", email)
+                .setMaxResults(1)
+                .getResultList().stream()
+                .findFirst();
     }
 
     public List<Customer> findAll() {

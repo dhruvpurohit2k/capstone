@@ -1,4 +1,4 @@
-package com.accenture.dhruv.healthdekho.user.model;
+package com.accenture.dhruv.healthdekho.customer.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
