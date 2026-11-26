@@ -1,76 +1,58 @@
 package com.accenture.dhruv.healthdekho.premium.repository;
 
+import com.accenture.dhruv.healthdekho.premium.model.PaymentStatus;
 import com.accenture.dhruv.healthdekho.premium.model.PremiumInstallment;
-import jakarta.persistence.EntityManager;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
-@Repository
-public class PremiumInstallmentRepository {
+public interface PremiumInstallmentRepository extends JpaRepository<PremiumInstallment, Long> {
 
-    private final EntityManager entityManager;
+    @Query("select e from PremiumInstallment e order by e.id")
+    List<PremiumInstallment> findAll();
 
-    public PremiumInstallmentRepository(EntityManager entityManager) {
-        this.entityManager = entityManager;
-    }
+    @Query("""
+            select installment from PremiumInstallment installment
+            join fetch installment.policy policy
+            where policy.customer.id = :customerId
+              and installment.paymentStatus in :statuses
+              and installment.paidAmount < installment.scheduledAmount + installment.assessedPenaltyAmount
+            order by installment.dueDate, installment.id
+            """)
+    List<PremiumInstallment> findOpenForCustomer(@Param("customerId") long customerId,
+                                                 @Param("statuses") List<PaymentStatus> statuses);
 
-    public PremiumInstallment create(PremiumInstallment entity) {
-        entityManager.persist(entity);
-        return entity;
-    }
+    @Query("""
+            select installment from PremiumInstallment installment
+            where installment.policy.id = :policyId
+            """)
+    List<PremiumInstallment> findByPolicyId(@Param("policyId") long policyId);
 
-    public Optional<PremiumInstallment> findById(long id) {
-        return Optional.ofNullable(entityManager.find(PremiumInstallment.class, id));
-    }
+    @Modifying
+    @Query(value = "lock table premium_installment in share row exclusive mode", nativeQuery = true)
+    void lockForSeeding();
 
-    public List<PremiumInstallment> findAll() {
-        return entityManager.createQuery("select e from PremiumInstallment e order by e.id", PremiumInstallment.class)
-                .getResultList();
-    }
+    @Modifying
+    @Query(value = """
+            insert into premium_installment (installment_id, policy_id, installment_number, due_date,
+                grace_period_end_date, scheduled_amount, paid_amount, payment_status,
+                assessed_penalty_amount)
+            values (cast(:#{#row['installment_id']} as bigint), cast(:#{#row['policy_id']} as bigint), cast(:#{#row['installment_number']} as
+                integer), cast(:#{#row['due_date']} as date), cast(:#{#row['grace_period_end_date']} as date),
+                cast(:#{#row['scheduled_amount']} as numeric), cast(:#{#row['paid_amount']} as numeric), :#{#row['payment_status']},
+                cast(:#{#row['assessed_penalty_amount']} as numeric))
+            on conflict (installment_id) do nothing
+            """, nativeQuery = true)
+    int insertSeed(@Param("row") Map<String, String> row);
 
-    public void delete(PremiumInstallment entity) {
-        entityManager.remove(entity);
-    }
-
-    public void flush() {
-        entityManager.flush();
-    }
-
-    public void lockForSeeding() {
-        entityManager.createNativeQuery("lock table premium_installment in share row exclusive mode").executeUpdate();
-    }
-
-    public int insertSeed(Map<String, String> row) {
-        return entityManager.createNativeQuery("""
-                insert into premium_installment (installment_id, policy_id, installment_number, due_date,
-                        grace_period_end_date, scheduled_amount, paid_amount, payment_status,
-                        assessed_penalty_amount)
-                values (cast(:installment_id as bigint), cast(:policy_id as bigint), cast(:installment_number as
-                        integer), cast(:due_date as date), cast(:grace_period_end_date as date),
-                        cast(:scheduled_amount as numeric), cast(:paid_amount as numeric), :payment_status,
-                        cast(:assessed_penalty_amount as numeric))
-                on conflict (installment_id) do nothing
-                """)
-                .setParameter("installment_id", row.get("installment_id"))
-                .setParameter("policy_id", row.get("policy_id"))
-                .setParameter("installment_number", row.get("installment_number"))
-                .setParameter("due_date", row.get("due_date"))
-                .setParameter("grace_period_end_date", row.get("grace_period_end_date"))
-                .setParameter("scheduled_amount", row.get("scheduled_amount"))
-                .setParameter("paid_amount", row.get("paid_amount"))
-                .setParameter("payment_status", row.get("payment_status"))
-                .setParameter("assessed_penalty_amount", row.get("assessed_penalty_amount"))
-                .executeUpdate();
-    }
-
-    public void advanceIdentity() {
-        entityManager.createNativeQuery("""
-                select setval(pg_get_serial_sequence('premium_installment', 'installment_id'),
-                    greatest(nextval(pg_get_serial_sequence('premium_installment', 'installment_id')), max(installment_id)))
-                from premium_installment
-                """).getSingleResult();
-    }
+    @Query(value = """
+            select setval(pg_get_serial_sequence('premium_installment', 'installment_id'),
+            greatest(nextval(pg_get_serial_sequence('premium_installment', 'installment_id')), max(installment_id)))
+            from premium_installment
+            """, nativeQuery = true)
+    Long advanceIdentity();
 }

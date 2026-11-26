@@ -38,7 +38,7 @@ public class CustomerService {
         }
         entity.setEmail(email);
         try {
-            Customer customer = repository.create(entity);
+            Customer customer = repository.save(entity);
             repository.flush();
             return customer;
         } catch (DataIntegrityViolationException error) {

@@ -25,7 +25,7 @@ public class AiRecommendationItemService {
         if (entity.getId() != null) {
             throw new IllegalArgumentException("New records must use a generated ID");
         }
-        return repository.create(entity);
+        return repository.save(entity);
     }
 
     @Transactional(readOnly = true)

@@ -64,4 +64,8 @@ public class InsuranceProduct {
 
     @Column(name = "active", nullable = false)
     private boolean active;
+
+    public boolean acceptsEntryAge(int age) {
+        return age >= minEntryAge && age <= maxEntryAge;
+    }
 }

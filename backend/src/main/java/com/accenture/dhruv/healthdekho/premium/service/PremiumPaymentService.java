@@ -1,5 +1,6 @@
 package com.accenture.dhruv.healthdekho.premium.service;
 
+import com.accenture.dhruv.healthdekho.premium.dto.PaymentHistoryItem;
 import com.accenture.dhruv.healthdekho.premium.model.PremiumPayment;
 import com.accenture.dhruv.healthdekho.premium.repository.PremiumPaymentRepository;
 import com.accenture.dhruv.healthdekho.seed.SeedCsv;
@@ -24,7 +25,7 @@ public class PremiumPaymentService {
         if (entity.getId() != null) {
             throw new IllegalArgumentException("New records must use a generated ID");
         }
-        return repository.create(entity);
+        return repository.save(entity);
     }
 
     @Transactional(readOnly = true)
@@ -35,6 +36,19 @@ public class PremiumPaymentService {
     @Transactional(readOnly = true)
     public List<PremiumPayment> findAll() {
         return repository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public List<PaymentHistoryItem> findHistory(long customerId) {
+        return repository.findByCustomerId(customerId).stream()
+                .map(payment -> {
+                    var installment = payment.getInstallment();
+                    return new PaymentHistoryItem(payment.getId(), installment.getId(),
+                            installment.getPolicy().getPolicyNumber(), installment.getInstallmentNumber(),
+                            payment.getTransactionReference(), payment.getPaymentDate(), payment.getAmountPaid(),
+                            payment.getPenaltyAmount(), payment.getPaymentMethod());
+                })
+                .toList();
     }
 
     @Transactional

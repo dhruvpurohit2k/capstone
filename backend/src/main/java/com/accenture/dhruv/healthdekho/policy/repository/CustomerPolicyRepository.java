@@ -1,89 +1,62 @@
 package com.accenture.dhruv.healthdekho.policy.repository;
 
 import com.accenture.dhruv.healthdekho.policy.model.CustomerPolicy;
-import jakarta.persistence.EntityManager;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-@Repository
-public class CustomerPolicyRepository {
+public interface CustomerPolicyRepository extends JpaRepository<CustomerPolicy, Long> {
 
-    private final EntityManager entityManager;
+    @Query("select e from CustomerPolicy e order by e.id")
+    List<CustomerPolicy> findAll();
 
-    public CustomerPolicyRepository(EntityManager entityManager) {
-        this.entityManager = entityManager;
-    }
+    @Query("""
+            select policy from CustomerPolicy policy
+            join fetch policy.product
+            where policy.customer.id = :customerId
+            order by policy.id
+            """)
+    List<CustomerPolicy> findByCustomerId(@Param("customerId") long customerId);
 
-    public CustomerPolicy create(CustomerPolicy entity) {
-        entityManager.persist(entity);
-        return entity;
-    }
+    @Query("""
+            select count(policy) > 0 from CustomerPolicy policy
+            where policy.customer.id = :customerId and policy.product.id = :productId
+            """)
+    boolean existsForCustomerAndProduct(@Param("customerId") long customerId, @Param("productId") long productId);
 
-    public Optional<CustomerPolicy> findById(long id) {
-        return Optional.ofNullable(entityManager.find(CustomerPolicy.class, id));
-    }
+    @Query("""
+            select policy from CustomerPolicy policy
+            join fetch policy.product
+            where policy.id = :policyId and policy.customer.id = :customerId
+            """)
+    Optional<CustomerPolicy> findOwnedPolicy(@Param("customerId") long customerId, @Param("policyId") long policyId);
 
-    public List<CustomerPolicy> findAll() {
-        return entityManager.createQuery("select e from CustomerPolicy e order by e.id", CustomerPolicy.class)
-                .getResultList();
-    }
+    @Modifying
+    @Query(value = "lock table customer_policy in share row exclusive mode", nativeQuery = true)
+    void lockForSeeding();
 
-    public List<CustomerPolicy> findByCustomerId(long customerId) {
-        return entityManager.createQuery("""
-                select policy from CustomerPolicy policy
-                join fetch policy.product
-                where policy.customer.id = :customerId
-                order by policy.id
-                """, CustomerPolicy.class)
-                .setParameter("customerId", customerId)
-                .getResultList();
-    }
+    @Modifying
+    @Query(value = """
+            insert into customer_policy (policy_id, policy_number, customer_id, product_id, start_date,
+                maturity_date, premium_frequency, premium_amount, sum_insured, total_premium_payable,
+                status, created_at)
+            values (cast(:#{#row['policy_id']} as bigint), :#{#row['policy_number']}, cast(:#{#row['customer_id']} as bigint), cast(:#{#row['product_id']}
+                as bigint), cast(:#{#row['start_date']} as date), cast(:#{#row['maturity_date']} as date), :#{#row['premium_frequency']},
+                cast(:#{#row['premium_amount']} as numeric), cast(:#{#row['sum_insured']} as numeric),
+                cast(:#{#row['total_premium_payable']} as numeric), :#{#row['status']}, current_timestamp)
+            on conflict (policy_id) do nothing
+            """, nativeQuery = true)
+    int insertSeed(@Param("row") Map<String, String> row);
 
-    public void delete(CustomerPolicy entity) {
-        entityManager.remove(entity);
-    }
-
-    public void flush() {
-        entityManager.flush();
-    }
-
-    public void lockForSeeding() {
-        entityManager.createNativeQuery("lock table customer_policy in share row exclusive mode").executeUpdate();
-    }
-
-    public int insertSeed(Map<String, String> row) {
-        return entityManager.createNativeQuery("""
-                insert into customer_policy (policy_id, policy_number, customer_id, product_id, start_date,
-                        maturity_date, premium_frequency, premium_amount, sum_insured, total_premium_payable,
-                        status, created_at)
-                values (cast(:policy_id as bigint), :policy_number, cast(:customer_id as bigint), cast(:product_id
-                        as bigint), cast(:start_date as date), cast(:maturity_date as date), :premium_frequency,
-                        cast(:premium_amount as numeric), cast(:sum_insured as numeric),
-                        cast(:total_premium_payable as numeric), :status, current_timestamp)
-                on conflict (policy_id) do nothing
-                """)
-                .setParameter("policy_id", row.get("policy_id"))
-                .setParameter("policy_number", row.get("policy_number"))
-                .setParameter("customer_id", row.get("customer_id"))
-                .setParameter("product_id", row.get("product_id"))
-                .setParameter("start_date", row.get("start_date"))
-                .setParameter("maturity_date", row.get("maturity_date"))
-                .setParameter("premium_frequency", row.get("premium_frequency"))
-                .setParameter("premium_amount", row.get("premium_amount"))
-                .setParameter("sum_insured", row.get("sum_insured"))
-                .setParameter("total_premium_payable", row.get("total_premium_payable"))
-                .setParameter("status", row.get("status"))
-                .executeUpdate();
-    }
-
-    public void advanceIdentity() {
-        entityManager.createNativeQuery("""
-                select setval(pg_get_serial_sequence('customer_policy', 'policy_id'),
-                    greatest(nextval(pg_get_serial_sequence('customer_policy', 'policy_id')), max(policy_id)))
-                from customer_policy
-                """).getSingleResult();
-    }
+    @Query(value = """
+            select setval(pg_get_serial_sequence('customer_policy', 'policy_id'),
+            greatest(nextval(pg_get_serial_sequence('customer_policy', 'policy_id')), max(policy_id)))
+            from customer_policy
+            """, nativeQuery = true)
+    Long advanceIdentity();
 }

@@ -1,64 +1,52 @@
 package com.accenture.dhruv.healthdekho.premium.repository;
 
 import com.accenture.dhruv.healthdekho.premium.model.PremiumPayment;
-import jakarta.persistence.EntityManager;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.Repository;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-@Repository
-public class PremiumPaymentRepository {
+public interface PremiumPaymentRepository extends Repository<PremiumPayment, Long> {
 
-    private final EntityManager entityManager;
+    <S extends PremiumPayment> S save(S payment);
 
-    public PremiumPaymentRepository(EntityManager entityManager) {
-        this.entityManager = entityManager;
-    }
+    Optional<PremiumPayment> findById(Long id);
 
-    public PremiumPayment create(PremiumPayment entity) {
-        entityManager.persist(entity);
-        return entity;
-    }
+    @Query("select e from PremiumPayment e order by e.id")
+    List<PremiumPayment> findAll();
 
-    public Optional<PremiumPayment> findById(long id) {
-        return Optional.ofNullable(entityManager.find(PremiumPayment.class, id));
-    }
+    @Query("""
+            select payment from PremiumPayment payment
+            join fetch payment.installment installment
+            join fetch installment.policy policy
+            where policy.customer.id = :customerId
+            order by payment.paymentDate desc, payment.id desc
+            """)
+    List<PremiumPayment> findByCustomerId(@Param("customerId") long customerId);
 
-    public List<PremiumPayment> findAll() {
-        return entityManager.createQuery("select e from PremiumPayment e order by e.id", PremiumPayment.class)
-                .getResultList();
-    }
+    @Modifying
+    @Query(value = "lock table premium_payment in share row exclusive mode", nativeQuery = true)
+    void lockForSeeding();
 
-    public void lockForSeeding() {
-        entityManager.createNativeQuery("lock table premium_payment in share row exclusive mode").executeUpdate();
-    }
+    @Modifying
+    @Query(value = """
+            insert into premium_payment (payment_id, installment_id, transaction_reference, payment_date,
+                amount_paid, penalty_amount, payment_method, created_at)
+            values (cast(:#{#row['payment_id']} as bigint), cast(:#{#row['installment_id']} as bigint), :#{#row['transaction_reference']},
+                cast(:#{#row['payment_date']} as date), cast(:#{#row['amount_paid']} as numeric), cast(:#{#row['penalty_amount']} as
+                numeric), :#{#row['payment_method']}, current_timestamp)
+            on conflict (payment_id) do nothing
+            """, nativeQuery = true)
+    int insertSeed(@Param("row") Map<String, String> row);
 
-    public int insertSeed(Map<String, String> row) {
-        return entityManager.createNativeQuery("""
-                insert into premium_payment (payment_id, installment_id, transaction_reference, payment_date,
-                        amount_paid, penalty_amount, payment_method, created_at)
-                values (cast(:payment_id as bigint), cast(:installment_id as bigint), :transaction_reference,
-                        cast(:payment_date as date), cast(:amount_paid as numeric), cast(:penalty_amount as
-                        numeric), :payment_method, current_timestamp)
-                on conflict (payment_id) do nothing
-                """)
-                .setParameter("payment_id", row.get("payment_id"))
-                .setParameter("installment_id", row.get("installment_id"))
-                .setParameter("transaction_reference", row.get("transaction_reference"))
-                .setParameter("payment_date", row.get("payment_date"))
-                .setParameter("amount_paid", row.get("amount_paid"))
-                .setParameter("penalty_amount", row.get("penalty_amount"))
-                .setParameter("payment_method", row.get("payment_method"))
-                .executeUpdate();
-    }
-
-    public void advanceIdentity() {
-        entityManager.createNativeQuery("""
-                select setval(pg_get_serial_sequence('premium_payment', 'payment_id'),
-                    greatest(nextval(pg_get_serial_sequence('premium_payment', 'payment_id')), max(payment_id)))
-                from premium_payment
-                """).getSingleResult();
-    }
+    @Query(value = """
+            select setval(pg_get_serial_sequence('premium_payment', 'payment_id'),
+            greatest(nextval(pg_get_serial_sequence('premium_payment', 'payment_id')), max(payment_id)))
+            from premium_payment
+            """, nativeQuery = true)
+    Long advanceIdentity();
 }
