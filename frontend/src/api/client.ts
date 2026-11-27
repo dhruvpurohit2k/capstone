@@ -1,6 +1,6 @@
 import axios, { type AxiosRequestConfig } from 'axios'
 import type { z } from 'zod'
-import { csrfResponseSchema, refreshResponseSchema } from '../features/auth/schemas/authResponses.ts'
+import { csrfResponseSchema, loginResponseSchema } from '../features/auth/schemas/authResponses.ts'
 import { springErrorResponseSchema } from '../shared/schemas/apiResponse.ts'
 
 export type ApiFailure = {
@@ -38,7 +38,7 @@ export function refreshAccessToken(): Promise<string | null> {
   if (refreshRequest) return refreshRequest
 
   const version = sessionVersion
-  const pending = request({ method: 'POST', url: '/auth/refresh' }, refreshResponseSchema)
+  const pending = request({ method: 'POST', url: '/auth/refresh' }, loginResponseSchema)
     .then((response) => {
       if (!response.success || version !== sessionVersion) return null
       const token = response.data.token

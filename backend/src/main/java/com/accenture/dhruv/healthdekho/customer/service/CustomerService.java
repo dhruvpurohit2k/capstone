@@ -4,7 +4,6 @@ import com.accenture.dhruv.healthdekho.customer.model.Customer;
 import com.accenture.dhruv.healthdekho.customer.repository.CustomerRepository;
 import com.accenture.dhruv.healthdekho.exception.DuplicateEntityException;
 import com.accenture.dhruv.healthdekho.seed.SeedCsv;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -59,36 +58,8 @@ public class CustomerService {
         return repository.findByEmail(email.toLowerCase(Locale.ROOT));
     }
 
-    @Transactional(readOnly = true)
-    public List<Customer> findAll() {
-        return repository.findAll();
-    }
-
-    @Transactional
-    public Customer update(long id, Customer replacement) {
-        Customer current = requireExisting(id);
-        current.setEmail(replacement.getEmail());
-        current.setPasswordHash(replacement.getPasswordHash());
-        current.setFullName(replacement.getFullName());
-        current.setDateOfBirth(replacement.getDateOfBirth());
-        current.setPhone(replacement.getPhone());
-        current.setStatus(replacement.getStatus());
-        repository.flush();
-        return current;
-    }
-
-    @Transactional
-    public void delete(long id) {
-        repository.delete(requireExisting(id));
-    }
-
     private DuplicateEntityException duplicateEmail() {
         return new DuplicateEntityException("email", "A customer with this email already exists");
-    }
-
-    private Customer requireExisting(long id) {
-        return repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Customer with ID " + id + " was not found"));
     }
 
     @Transactional

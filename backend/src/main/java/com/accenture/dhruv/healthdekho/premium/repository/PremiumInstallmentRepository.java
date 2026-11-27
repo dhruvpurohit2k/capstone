@@ -12,9 +12,6 @@ import java.util.Map;
 
 public interface PremiumInstallmentRepository extends JpaRepository<PremiumInstallment, Long> {
 
-    @Query("select e from PremiumInstallment e order by e.id")
-    List<PremiumInstallment> findAll();
-
     @Query("""
             select installment from PremiumInstallment installment
             join fetch installment.policy policy

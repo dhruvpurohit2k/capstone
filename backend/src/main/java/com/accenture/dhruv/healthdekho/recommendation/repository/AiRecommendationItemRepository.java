@@ -6,14 +6,10 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 public interface AiRecommendationItemRepository extends JpaRepository<AiRecommendationItem, Long> {
-
-    @Query("select e from AiRecommendationItem e order by e.id")
-    List<AiRecommendationItem> findAll();
 
     @Query("""
             select item from AiRecommendationItem item

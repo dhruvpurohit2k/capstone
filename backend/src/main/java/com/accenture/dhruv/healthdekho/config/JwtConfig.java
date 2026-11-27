@@ -37,12 +37,14 @@ public class JwtConfig {
                      @Value("${app.jwt.access-token-ttl}") Duration accessLifetime,
                      @Value("${app.jwt.refresh-token-ttl}") Duration refreshLifetime,
                      @Value("${app.jwt.secure-cookies}") boolean secureCookies) {
-        byte[] keyBytes = Base64.getDecoder().decode(secret);
-        if (keyBytes.length < 32 || accessLifetime.toSeconds() < 1 || refreshLifetime.toSeconds() < 1) {
-            throw new IllegalArgumentException("JWT requires a Base64 key of at least 32 bytes and a positive lifetime");
+        if (secret.isBlank()) {
+            throw new IllegalArgumentException("JWT_SECRET must not be blank");
+        }
+        if (accessLifetime.toSeconds() < 1 || refreshLifetime.toSeconds() < 1) {
+            throw new IllegalArgumentException("JWT token lifetimes must be at least one second");
         }
         this.mapper = mapper;
-        this.key = new SecretKeySpec(keyBytes, "HmacSHA256");
+        this.key = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
         this.accessLifetime = accessLifetime;
         this.refreshLifetime = refreshLifetime;
         this.secureCookies = secureCookies;

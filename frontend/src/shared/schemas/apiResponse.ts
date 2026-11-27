@@ -1,11 +1,11 @@
 import { z } from 'zod'
 
-export const apiErrorSchema = z.object({
+const apiErrorSchema = z.object({
   fieldName: z.string().nullable(),
   message: z.string(),
 })
 
-export const apiErrorResponseSchema = z.object({
+const apiErrorResponseSchema = z.object({
   status: z.number().int().min(400).max(599),
   success: z.literal(false),
   errors: z.array(apiErrorSchema).min(1),

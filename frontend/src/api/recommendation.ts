@@ -1,7 +1,7 @@
 import { recommendationResponseSchema } from '../features/recommendation/schemas/recommendationResponses.ts'
 import { apiRequest } from './client.ts'
 
-export type RecommendationRequest = {
+type RecommendationRequest = {
   dateOfBirth?: string
   insuranceGoals?: string
   preferredTermMonths?: number

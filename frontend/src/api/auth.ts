@@ -1,12 +1,12 @@
 import { loginResponseSchema, logoutResponseSchema, signupResponseSchema } from '../features/auth/schemas/authResponses.ts'
 import { apiRequest } from './client.ts'
 
-export type LoginRequest = {
+type LoginRequest = {
   email: string
   password: string
 }
 
-export type SignupRequest = LoginRequest & {
+type SignupRequest = LoginRequest & {
   fullName: string
   dateOfBirth: string
   phone: string

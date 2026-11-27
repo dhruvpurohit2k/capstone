@@ -8,16 +8,8 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public interface PremiumPaymentRepository extends Repository<PremiumPayment, Long> {
-
-    <S extends PremiumPayment> S save(S payment);
-
-    Optional<PremiumPayment> findById(Long id);
-
-    @Query("select e from PremiumPayment e order by e.id")
-    List<PremiumPayment> findAll();
 
     @Query("""
             select payment from PremiumPayment payment

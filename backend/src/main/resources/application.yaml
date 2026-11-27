@@ -11,14 +11,15 @@ spring:
       ddl-auto: validate
   ai:
     model:
-      chat: ${AI_CHAT_MODEL}
+      chat: ${AI_CHAT_MODEL:none}
     bedrock:
       aws:
-        region: ${AWS_REGION}
+        region: ${AWS_REGION:}
+        timeout: ${BEDROCK_REQUEST_TIMEOUT:30s}
       converse:
         chat:
           options:
-            model: ${BEDROCK_CONVERSE_MODEL}
+            model: ${BEDROCK_CONVERSE_MODEL:}
             temperature: ${BEDROCK_TEMPERATURE}
             max-tokens: ${BEDROCK_MAX_TOKENS}
 
@@ -30,3 +31,7 @@ app:
     access-token-ttl: ${JWT_ACCESS_TOKEN_TTL:PT15M}
     refresh-token-ttl: ${JWT_REFRESH_TOKEN_TTL:P7D}
     secure-cookies: ${JWT_SECURE_COOKIES:true}
+
+logging:
+  level:
+    org.springframework.ai.converter.BeanOutputConverter: "OFF"

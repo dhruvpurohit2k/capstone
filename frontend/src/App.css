@@ -145,7 +145,7 @@ ul.error-list { padding-left: 1.9rem; }
 
 .recommendation-form { display: grid; gap: 1rem; }
 .recommendation-form label { display: grid; gap: .38rem; min-width: 0; font-weight: 650; }
-.recommendation-form input, .recommendation-form textarea, .recommendation-form select {
+.recommendation-form input, .recommendation-form textarea {
   width: 100%;
   min-width: 0;
   padding: .55rem .75rem;

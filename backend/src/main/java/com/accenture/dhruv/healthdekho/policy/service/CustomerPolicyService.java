@@ -17,7 +17,6 @@ import com.accenture.dhruv.healthdekho.premium.repository.PremiumInstallmentRepo
 import com.accenture.dhruv.healthdekho.premium.service.PremiumPaymentService;
 import com.accenture.dhruv.healthdekho.product.repository.InsuranceProductRepository;
 import com.accenture.dhruv.healthdekho.seed.SeedCsv;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +27,6 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 @Service
@@ -52,24 +50,6 @@ public class CustomerPolicyService {
         this.customers = customers;
         this.installments = installments;
         this.payments = payments;
-    }
-
-    @Transactional
-    public CustomerPolicy create(CustomerPolicy entity) {
-        if (entity.getId() != null) {
-            throw new IllegalArgumentException("New records must use a generated ID");
-        }
-        return repository.save(entity);
-    }
-
-    @Transactional(readOnly = true)
-    public Optional<CustomerPolicy> findById(long id) {
-        return repository.findById(id);
-    }
-
-    @Transactional(readOnly = true)
-    public List<CustomerPolicy> findAll() {
-        return repository.findAll();
     }
 
     @Transactional(readOnly = true)
@@ -185,33 +165,6 @@ public class CustomerPolicyService {
                 installment.getInstallmentNumber(), installment.getDueDate(), installment.getGracePeriodEndDate(),
                 installment.getPaymentStatus(), overdue, installment.getScheduledAmount(), installment.getPaidAmount(),
                 penalty, principalDue.add(penalty));
-    }
-
-    @Transactional
-    public CustomerPolicy update(long id, CustomerPolicy replacement) {
-        CustomerPolicy current = requireExisting(id);
-        current.setPolicyNumber(replacement.getPolicyNumber());
-        current.setCustomer(replacement.getCustomer());
-        current.setProduct(replacement.getProduct());
-        current.setStartDate(replacement.getStartDate());
-        current.setMaturityDate(replacement.getMaturityDate());
-        current.setPremiumFrequency(replacement.getPremiumFrequency());
-        current.setPremiumAmount(replacement.getPremiumAmount());
-        current.setSumInsured(replacement.getSumInsured());
-        current.setTotalPremiumPayable(replacement.getTotalPremiumPayable());
-        current.setStatus(replacement.getStatus());
-        repository.flush();
-        return current;
-    }
-
-    @Transactional
-    public void delete(long id) {
-        repository.delete(requireExisting(id));
-    }
-
-    private CustomerPolicy requireExisting(long id) {
-        return repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("CustomerPolicy with ID " + id + " was not found"));
     }
 
     @Transactional

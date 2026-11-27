@@ -11,9 +11,6 @@ import java.util.Map;
 
 public interface InsuranceProductRepository extends JpaRepository<InsuranceProduct, Long> {
 
-    @Query("select e from InsuranceProduct e order by e.id")
-    List<InsuranceProduct> findAll();
-
     @Query("""
             select product from InsuranceProduct product
             where product.active = true and not exists (

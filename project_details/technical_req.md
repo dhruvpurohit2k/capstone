@@ -44,12 +44,13 @@ Set these variables in the build or application environment.
 | `M2_HOME` | Path to an installed Maven distribution. When omitted, the wrapper installs the distribution pinned in the project under `MAVEN_USER_HOME`. |
 | `MAVEN_REPO_LOCAL` | Optional path to a separate Maven dependency repository. |
 | `POSTGRES_URL`, `POSTGRES_USER`, `POSTGRES_PASSWORD` | RDS PostgreSQL JDBC URL and database credentials supplied by the deployment. Include the TLS settings in the JDBC URL. For server verification, use `sslmode=verify-full` with the RDS CA file in `sslrootcert`. |
-| `AI_CHAT_MODEL` | Set to `bedrock-converse` to select the Bedrock chat model. |
-| `AWS_REGION`, `BEDROCK_MODEL_ID` | Bedrock region and a Converse-compatible model ID or inference profile ID/ARN. |
+| `AI_CHAT_MODEL` | Set to `bedrock-converse` to enable AI recommendations. Defaults to `none`. |
+| `AWS_REGION`, `BEDROCK_CONVERSE_MODEL` | Bedrock region and a Converse-compatible model ID or inference profile ID/ARN. |
 | `BEDROCK_TEMPERATURE`, `BEDROCK_MAX_TOKENS` | Inference settings supported by the selected model. |
 | `BEDROCK_MODEL_VERSION` | Optional audit label. The model ID is used when this is omitted. |
+| `BEDROCK_REQUEST_TIMEOUT` | Optional duration for the entire Bedrock call. Defaults to 30 seconds. |
 | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN` | Set through the AWS SDK environment credential provider when supplying credentials directly. The SDK also supports the deployed workload's IAM role. |
-| `JWT_SECRET` | Required JWT signing key. |
+| `JWT_SECRET` | Required nonblank JWT signing secret, read as UTF-8 text. |
 | `JWT_ACCESS_TOKEN_TTL`, `JWT_REFRESH_TOKEN_TTL` | Optional duration overrides. Defaults are 15 minutes and 7 days, respectively. |
 | `JWT_SECURE_COOKIES` | Optional secure-cookie flag. Defaults to `true`. |
 

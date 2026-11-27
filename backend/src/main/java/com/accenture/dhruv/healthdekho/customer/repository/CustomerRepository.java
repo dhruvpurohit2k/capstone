@@ -6,14 +6,10 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 public interface CustomerRepository extends JpaRepository<Customer, Long> {
-
-    @Query("select e from Customer e order by e.id")
-    List<Customer> findAll();
 
     @Query(value = """
             select * from customer where lower(email) = :email order by customer_id limit 1

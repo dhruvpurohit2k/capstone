@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { apiResponseSchema } from '../../../shared/schemas/apiResponse.ts'
 
-export const customerSchema = z.object({
+const customerSchema = z.object({
   id: z.number().int().positive(),
   email: z.email(),
   fullName: z.string().min(1),
@@ -21,8 +21,6 @@ export const csrfResponseSchema = apiResponseSchema(z.object({
   token: z.string().min(1),
   headerName: z.literal('X-XSRF-TOKEN'),
 }))
-
-export const refreshResponseSchema = loginResponseSchema
 
 export const logoutResponseSchema = apiResponseSchema(z.object({
   message: z.string().min(1),

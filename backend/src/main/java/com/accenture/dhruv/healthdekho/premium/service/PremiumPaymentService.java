@@ -1,7 +1,6 @@
 package com.accenture.dhruv.healthdekho.premium.service;
 
 import com.accenture.dhruv.healthdekho.premium.dto.PaymentHistoryItem;
-import com.accenture.dhruv.healthdekho.premium.model.PremiumPayment;
 import com.accenture.dhruv.healthdekho.premium.repository.PremiumPaymentRepository;
 import com.accenture.dhruv.healthdekho.seed.SeedCsv;
 import org.springframework.stereotype.Service;
@@ -9,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 public class PremiumPaymentService {
@@ -18,24 +16,6 @@ public class PremiumPaymentService {
 
     public PremiumPaymentService(PremiumPaymentRepository repository) {
         this.repository = repository;
-    }
-
-    @Transactional
-    public PremiumPayment create(PremiumPayment entity) {
-        if (entity.getId() != null) {
-            throw new IllegalArgumentException("New records must use a generated ID");
-        }
-        return repository.save(entity);
-    }
-
-    @Transactional(readOnly = true)
-    public Optional<PremiumPayment> findById(long id) {
-        return repository.findById(id);
-    }
-
-    @Transactional(readOnly = true)
-    public List<PremiumPayment> findAll() {
-        return repository.findAll();
     }
 
     @Transactional(readOnly = true)

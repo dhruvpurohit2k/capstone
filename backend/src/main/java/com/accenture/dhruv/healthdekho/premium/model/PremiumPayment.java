@@ -60,15 +60,4 @@ public class PremiumPayment {
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
-
-    public PremiumPayment(PremiumInstallment installment, String transactionReference,
-                          LocalDate paymentDate, BigDecimal amountPaid,
-                          BigDecimal penaltyAmount, String paymentMethod) {
-        this.installment = installment;
-        this.transactionReference = transactionReference;
-        this.paymentDate = paymentDate;
-        this.amountPaid = amountPaid;
-        this.penaltyAmount = penaltyAmount;
-        this.paymentMethod = paymentMethod;
-    }
 }

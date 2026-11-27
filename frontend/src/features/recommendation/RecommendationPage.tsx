@@ -3,6 +3,8 @@ import { getRecommendations } from '../../api/recommendation.ts'
 import AvailablePolicyTable from '../policy/AvailablePolicyTable.tsx'
 import type { RecommendedPolicy } from './schemas/recommendationResponses.ts'
 
+const unavailableMessage = 'AI recommendations are temporarily unavailable. Please try again later.'
+
 type Props = {
   token: string
   registeredProducts: number[]
@@ -44,6 +46,7 @@ export default function RecommendationPage({ token, registeredProducts, onSignOu
       })
       if (response.success) setResults(response.data.recommendations)
       else if (response.status === 401) onSignOut()
+      else if (response.status >= 500) setError(unavailableMessage)
       else {
         const dateError = response.errors.find((item) => item.fieldName === 'dateOfBirth')
         setBirthDateError(dateError?.message ?? '')
@@ -51,7 +54,7 @@ export default function RecommendationPage({ token, registeredProducts, onSignOu
           || (dateError ? '' : 'Could not load recommendations.'))
       }
     } catch {
-      setError('Could not load recommendations. Please try again.')
+      setError(unavailableMessage)
     } finally {
       setLoading(false)
     }

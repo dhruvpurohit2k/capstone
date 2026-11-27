@@ -6,13 +6,9 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.List;
 import java.util.Map;
 
 public interface AiRecommendationRequestRepository extends JpaRepository<AiRecommendationRequest, Long> {
-
-    @Query("select e from AiRecommendationRequest e order by e.id")
-    List<AiRecommendationRequest> findAll();
 
     @Modifying
     @Query(value = "lock table ai_recommendation_request in share row exclusive mode", nativeQuery = true)

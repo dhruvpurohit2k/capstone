@@ -14,9 +14,6 @@ import java.util.Optional;
 
 public interface CustomerPolicyRepository extends JpaRepository<CustomerPolicy, Long> {
 
-    @Query("select e from CustomerPolicy e order by e.id")
-    List<CustomerPolicy> findAll();
-
     @Query("""
             select policy from CustomerPolicy policy
             join fetch policy.product
