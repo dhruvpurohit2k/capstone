@@ -1,6 +1,7 @@
 package com.accenture.dhruv.healthdekho.policy.controller;
 
 import com.accenture.dhruv.healthdekho.common.ApiResponse;
+import com.accenture.dhruv.healthdekho.exception.ApiException;
 import com.accenture.dhruv.healthdekho.policy.dto.AvailablePolicyResponse;
 import com.accenture.dhruv.healthdekho.policy.dto.DueInstallmentResponse;
 import com.accenture.dhruv.healthdekho.policy.dto.DueSumResponse;
@@ -13,10 +14,14 @@ import com.accenture.dhruv.healthdekho.policy.dto.SubscribedPolicyResponse;
 import com.accenture.dhruv.healthdekho.policy.service.CustomerPolicyService;
 import com.accenture.dhruv.healthdekho.policy.service.PolicyRegistrationService;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.TransactionException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,6 +35,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/policy")
 public class PolicyController {
+
+    private static final Logger LOG = LoggerFactory.getLogger(PolicyController.class);
 
     private final CustomerPolicyService policies;
     private final PolicyRegistrationService registration;
@@ -89,7 +96,12 @@ public class PolicyController {
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<PolicyRegistrationResponse>> register(
             Principal customer, @Valid @RequestBody PolicyRegistrationRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(HttpStatus.CREATED,
-                registration.register(Long.parseLong(customer.getName()), request)));
+        try {
+            var result = registration.register(Long.parseLong(customer.getName()), request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(HttpStatus.CREATED, result));
+        } catch (DataAccessException | TransactionException error) {
+            LOG.error("Policy registration persistence failed", error);
+            throw new ApiException(HttpStatus.INTERNAL_SERVER_ERROR, null, "Could not register the policy. Please try again.");
+        }
     }
 }

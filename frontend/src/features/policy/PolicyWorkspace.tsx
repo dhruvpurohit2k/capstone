@@ -3,7 +3,7 @@ import { logout } from '../../api/auth.ts'
 import { browsePolicies, getDueSum, getSubscribedPolicies, getUpcomingInstallments } from '../../api/policy.ts'
 import RecommendationPage from '../recommendation/RecommendationPage.tsx'
 import { formatCurrency, formatDate, formatLabel } from './formatPolicy.ts'
-import PolicyCard from './PolicyCard.tsx'
+import AvailablePolicyTable from './AvailablePolicyTable.tsx'
 import PolicyRegistrationPage from './PolicyRegistrationPage.tsx'
 import type { AvailablePolicy, SubscribedPolicy } from './schemas/policyResponses.ts'
 
@@ -18,6 +18,7 @@ type Props = {
 export default function PolicyWorkspace({ token, onSignOut }: Props) {
   const [section, setSection] = useState<Section>('Dashboard')
   const [selection, setSelection] = useState<{ productId: number; recommendationItemId?: number } | null>(null)
+  const [registeredProducts, setRegisteredProducts] = useState<number[]>([])
   const [signingOut, setSigningOut] = useState(false)
   const [signOutError, setSignOutError] = useState('')
 
@@ -59,7 +60,8 @@ export default function PolicyWorkspace({ token, onSignOut }: Props) {
         {signOutError && <p className="error-list" role="alert">{signOutError}</p>}
         {selection ? (
           <PolicyRegistrationPage key={selection.productId} {...selection} token={token} onSignOut={onSignOut}
-            onBack={() => setSelection(null)} onDashboard={() => selectSection('Dashboard')} />
+            onBack={() => setSelection(null)} onDashboard={() => selectSection('Dashboard')}
+            onRegistered={(productId) => setRegisteredProducts((products) => [...products, productId])} />
         ) : (
           <>
             <h1>{section}</h1>
@@ -72,7 +74,7 @@ export default function PolicyWorkspace({ token, onSignOut }: Props) {
         )}
         {section === 'AI Recommendations' && (
           <div hidden={selection !== null}>
-            <RecommendationPage token={token} onSignOut={onSignOut}
+            <RecommendationPage token={token} onSignOut={onSignOut} registeredProducts={registeredProducts}
               onRegister={(productId, recommendationItemId) => setSelection({ productId, recommendationItemId })} />
           </div>
         )}
@@ -197,19 +199,14 @@ function PolicyList({ token, onSignOut, browse, onRegister }: Props & {
   if (!browse) return <SubscribedPolicyTable policies={rows.filter((policy) => 'policyId' in policy)} />
 
   return (
-    <ul className="policy-grid" aria-label="Available policies">
-      {rows.filter((policy) => 'productId' in policy).map((policy) => (
-        <li key={policy.productId}>
-          <PolicyCard policy={policy} onRegister={() => onRegister(policy.productId)} />
-        </li>
-      ))}
-    </ul>
+    <AvailablePolicyTable caption="Available policies" policies={rows.filter((policy) => 'productId' in policy)}
+      onRegister={(policy) => onRegister(policy.productId)} />
   )
 }
 
 function SubscribedPolicyTable({ policies }: { policies: SubscribedPolicy[] }) {
   return (
-    <div className="subscribed-table">
+    <div className="policy-table" tabIndex={0} role="region" aria-label="Your policies">
       <table>
         <caption>Your policies</caption>
         <thead>

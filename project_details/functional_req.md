@@ -19,33 +19,18 @@ Business Objective: Provide customers with a personalized dashboard to view thei
 * Retrieve the policy information associated with the authenticated customer.
 * Display the following information in a tabular format:
 
-
-
 | Field | Description |
-
 |---------|-------------|
-
 | Policy Identifier | Unique policy number |
-
 | Policy Name | Registered insurance product |
-
 | Policy Type | Insurance category |
-
 | Policy Term | Duration of the policy |
-
 | Policy Start Date | Policy commencement date |
-
 | Policy Maturity Date | Policy maturity date |
-
 | Premium Frequency | Monthly, Quarterly, Half-Yearly or Yearly |
-
 | Premium Amount | Premium payable per installment |
-
 | Sum Insured | Insurance coverage amount |
-
 | Policy Status | Current policy status |
-
-
 
 * Display an appropriate message when the customer has not registered any insurance policy.
 
@@ -57,23 +42,14 @@ Business Objective: Provide customers with a personalized dashboard to view thei
 * Display the remaining available insurance products in a tabular format:
 
 | Field | Description |
-
 |---------|-------------|
-
 | Product Code | Unique insurance product code |
-
 | Policy Name | Name of the insurance product |
-
 | Policy Type | Insurance category |
-
 | Policy Term | Duration of the policy |
-
 | Sum Insured | Insurance coverage amount |
-
 | Premium Frequency | Premium payment frequency |
-
 | Premium Amount | Premium payable per installment |
-
 | Action | Register button |
 
 * Provide a Register button against every available insurance product.
@@ -88,11 +64,11 @@ Business Objective: Generate personalized, explainable insurance product recomme
 * Provide an option on the customer dashboard to generate personalized insurance policy recommendations using Spring AI.
 * Allow customers to provide one or more of the following inputs:
 
-Date of Birth (DOB)
+Date of Birth (DOB). Age is calculated from the signed-in customer's account date of birth. If supplied, the date must match the account.
 
-Insurance Goals and Preferences
+Insurance Goals and Preferences. The frontend includes any preferred payment frequency in this text.
 
-Preferred Policy Term
+Preferred Policy Term, entered in whole months.
 
 Insurance Type, wherever applicable
 
@@ -104,33 +80,20 @@ Insurance Type, wherever applicable
 * Ensure that AI-generated recommendations reference only products retrieved from the database.
 * Display the generated recommendations in a tabular format:
 
-
-
 | Field | Description |
-
 |---------|-------------|
-
 | Product Code | Unique insurance product code |
-
 | Policy Name | Recommended insurance product |
-
 | Policy Type | Insurance category |
-
 | Policy Term | Duration of the policy |
-
 | Sum Insured | Insurance coverage amount |
-
 | Premium Frequency | Premium payment frequency |
-
 | Premium Amount | Premium payable per installment |
-
 | Recommendation Reason | AI-generated recommendation rationale |
-
 | Suitability | Suitability for the customer's goals |
+| Action | Register button |
 
-| Action | Register button |Provide a Register button against every recommended insurance product.|
-
-
+* Provide a Register button against every recommended insurance product.
 
 * On clicking Register, navigate the customer to the policy registration interface with the selected product information pre-populated.
 * Save generated recommendations against the customer in the database.
@@ -157,43 +120,26 @@ Business Objective: Enable customers to register new insurance policies and auto
 
 Develop a React-based registration form that captures and displays the following information:
 
-
-
 | Field | Expected Behaviour |
-
 |---------|-------------------|
-
 | Customer Name | Automatically populated from logged-in customer details |
-
 | Date of Birth | Automatically populated from customer details |
-
 | Contact Information | Automatically populated from customer details |
-
 | Policy Type | Retrieved from the selected insurance product |
-
 | Policy Name | Pre-populated based on selected product |
-
 | Policy Term | Automatically populated based on selected product |
-
 | Policy Start Date | Default to current date |
-
 | Policy Maturity Date | Automatically calculated based on policy term |
-
 | Premium Payment Frequency | Automatically populated based on selected product |
-
 | Premium Amount | Retrieved from the selected insurance product |
-
 | Sum Insured | Automatically populated based on selected product |
-
 | Total Premium Payable | Calculated based on premium amount, frequency and policy term |
-
-
 
 **B. Business and Validation Requirements**
 
 * Validate all mandatory fields before submitting the registration request.
 * Ensure that the customer's date of birth is not in the future.
-* Validate customer eligibility against the minimum and maximum entry age configured for the insurance product.
+* Validate the customer's entry age on the selected policy start date against the product's minimum and maximum entry ages.
 * Validate the logical consistency of policy start and maturity dates.
 * Ensure premium amount, sum insured and policy term are positive.
 * Generate a unique policy identifier for every registered policy.

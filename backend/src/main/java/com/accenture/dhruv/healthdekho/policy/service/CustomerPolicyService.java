@@ -25,7 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.time.Period;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
@@ -88,12 +87,10 @@ public class CustomerPolicyService {
 
     @Transactional(readOnly = true)
     public List<AvailablePolicyResponse> findAvailable(long customerId) {
-        var customer = customers.findById(customerId)
+        customers.findById(customerId)
                 .filter(account -> "ACTIVE".equals(account.getStatus()))
                 .orElseThrow(() -> new UnauthenticatedException("Authorization", "An active customer is required"));
-        int age = Period.between(customer.getDateOfBirth(), LocalDate.now()).getYears();
         return products.findAvailableForCustomer(customerId).stream()
-                .filter(product -> product.acceptsEntryAge(age))
                 .map(product -> new AvailablePolicyResponse(product.getId(), product.getProductCode(),
                         product.getPolicyName(), product.getPolicyType(), product.getTermMonths(),
                         product.getSumInsured(), product.getPremiumFrequency(), product.getPremiumAmount()))
