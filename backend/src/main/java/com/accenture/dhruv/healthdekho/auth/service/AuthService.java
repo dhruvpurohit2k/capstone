@@ -31,7 +31,7 @@ public class AuthService {
         this.dummyHash = passwords.encode("unused");
     }
 
-    public LoginResponse login(LoginRequest request) {
+    public long authenticate(LoginRequest request) {
         if (request.password().getBytes(StandardCharsets.UTF_8).length > 72) {
             throw new UnauthenticatedException("credentials", INVALID_CREDENTIALS);
         }
@@ -43,6 +43,14 @@ public class AuthService {
         if (!passwords.matches(request.password(), hash) || customer == null || !"ACTIVE".equals(customer.getStatus())) {
             throw new UnauthenticatedException("credentials", INVALID_CREDENTIALS);
         }
+        return customer.getId();
+    }
+
+    public LoginResponse refresh(String refreshToken) {
+        var customer = jwt.getRefreshCustomerId(refreshToken)
+                .flatMap(customers::findById)
+                .filter(account -> "ACTIVE".equals(account.getStatus()))
+                .orElseThrow(() -> new UnauthenticatedException("session", "Session expired. Sign in again."));
         return new LoginResponse(jwt.createToken(customer.getId()), "Bearer");
     }
 

@@ -8,11 +8,21 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public interface AiRecommendationItemRepository extends JpaRepository<AiRecommendationItem, Long> {
 
     @Query("select e from AiRecommendationItem e order by e.id")
     List<AiRecommendationItem> findAll();
+
+    @Query("""
+            select item from AiRecommendationItem item
+            where item.id = :itemId and item.recommendationRequest.customer.id = :customerId
+              and item.product.id = :productId
+            """)
+    Optional<AiRecommendationItem> findForRegistration(@Param("itemId") long itemId,
+                                                        @Param("customerId") long customerId,
+                                                        @Param("productId") long productId);
 
     @Modifying
     @Query(value = "lock table ai_recommendation_item in share row exclusive mode", nativeQuery = true)

@@ -8,5 +8,6 @@ import java.time.LocalDate;
 
 public record PolicyRegistrationRequest(
         @NotNull @Positive Long productId,
-        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate) {
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+        @Positive Long recommendationItemId) {
 }

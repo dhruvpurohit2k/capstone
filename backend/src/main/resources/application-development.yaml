@@ -11,3 +11,7 @@ spring:
       ddl-auto: create
     properties:
       hibernate.hbm2ddl.halt_on_error: true
+
+app:
+  jwt:
+    secure-cookies: false

@@ -16,8 +16,8 @@ import com.accenture.dhruv.healthdekho.premium.repository.PremiumInstallmentRepo
 import com.accenture.dhruv.healthdekho.product.model.InsuranceProduct;
 import com.accenture.dhruv.healthdekho.product.model.PremiumFrequency;
 import com.accenture.dhruv.healthdekho.product.repository.InsuranceProductRepository;
-import org.hibernate.exception.ConstraintViolationException;
-import org.springframework.dao.DataIntegrityViolationException;
+import com.accenture.dhruv.healthdekho.recommendation.model.AiRecommendationItem;
+import com.accenture.dhruv.healthdekho.recommendation.repository.AiRecommendationItemRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,7 +26,7 @@ import java.math.BigDecimal;
 import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.Period;
-import java.util.UUID;
+import java.util.Locale;
 import java.util.stream.IntStream;
 
 @Service
@@ -36,13 +36,16 @@ public class PolicyRegistrationService {
     private final InsuranceProductRepository products;
     private final CustomerPolicyRepository policies;
     private final PremiumInstallmentRepository installments;
+    private final AiRecommendationItemRepository recommendationItems;
 
     public PolicyRegistrationService(CustomerRepository customers, InsuranceProductRepository products,
-                                     CustomerPolicyRepository policies, PremiumInstallmentRepository installments) {
+                                     CustomerPolicyRepository policies, PremiumInstallmentRepository installments,
+                                     AiRecommendationItemRepository recommendationItems) {
         this.customers = customers;
         this.products = products;
         this.policies = policies;
         this.installments = installments;
+        this.recommendationItems = recommendationItems;
     }
 
     @Transactional(readOnly = true)
@@ -55,28 +58,18 @@ public class PolicyRegistrationService {
         Customer customer = findCustomer(customerId);
         InsuranceProduct product = findProduct(request.productId());
         PolicyRegistrationPreview details = calculate(customer, product, request.startDate());
-
-        CustomerPolicy policy = new CustomerPolicy();
-        policy.setPolicyNumber("HDP-" + details.startDate().getYear() + "-" + UUID.randomUUID());
-        policy.setCustomer(customer);
-        policy.setProduct(product);
-        policy.setStartDate(details.startDate());
-        policy.setMaturityDate(details.maturityDate());
-        policy.setPremiumFrequency(details.premiumFrequency());
-        policy.setPremiumAmount(details.premiumAmount());
-        policy.setSumInsured(details.sumInsured());
-        policy.setTotalPremiumPayable(details.totalPremiumPayable());
-        policy.setStatus("ACTIVE");
-
-        try {
-            policies.saveAndFlush(policy);
-        } catch (DataIntegrityViolationException error) {
-            if (error.getCause() instanceof ConstraintViolationException violation
-                    && "uq_customer_policy_customer_product".equals(violation.getConstraintName())) {
-                throw duplicatePolicy();
-            }
-            throw error;
+        AiRecommendationItem recommendation = null;
+        if (request.recommendationItemId() != null) {
+            recommendation = recommendationItems.findForRegistration(request.recommendationItemId(), customerId, product.getId())
+                    .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "recommendationItemId", "Recommendation was not found"));
         }
+
+        String numberPrefix = String.format(Locale.ROOT, "HDP-%04d-", details.startDate().getYear());
+        long policyId = policies.insertRegisteredPolicy(numberPrefix, customerId, product.getId(),
+                        details.startDate(), details.maturityDate(), details.premiumFrequency().name(),
+                        details.premiumAmount(), details.sumInsured(), details.totalPremiumPayable())
+                .orElseThrow(this::duplicatePolicy);
+        CustomerPolicy policy = policies.getReferenceById(policyId);
 
         int monthsBetweenPayments = frequencyMonths(details.premiumFrequency());
         var schedule = IntStream.range(0, details.installmentCount())
@@ -84,6 +77,7 @@ public class PolicyRegistrationService {
                         details.startDate().plusMonths((long) index * monthsBetweenPayments)))
                 .toList();
         installments.saveAll(schedule);
+        if (recommendation != null) recommendation.setSelectedForRegistration(true);
 
         return new PolicyRegistrationResponse(policy.getId(), policy.getPolicyNumber(), policy.getStatus(),
                 "Policy registered successfully", details);

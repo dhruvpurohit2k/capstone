@@ -7,15 +7,20 @@ spring:
     open-in-view: false
   ai:
     model:
-      chat: ${AI_CHAT_MODEL}
-    bedrock:
-      aws:
-        region: ${AWS_REGION}
-      converse:
-        chat:
-          options:
-            model: ${BEDROCK_MODEL_ID}
+      chat: ollama
+    ollama:
+      base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+      chat:
+        options:
+          model: qwen3:8b
+          temperature: 0.2
+          format: json
 
 app:
+  recommendation:
+    model-version: ${OLLAMA_MODEL_VERSION:}
   jwt:
     secret: ${JWT_SECRET}
+    access-token-ttl: ${JWT_ACCESS_TOKEN_TTL:PT15M}
+    refresh-token-ttl: ${JWT_REFRESH_TOKEN_TTL:P7D}
+    secure-cookies: true

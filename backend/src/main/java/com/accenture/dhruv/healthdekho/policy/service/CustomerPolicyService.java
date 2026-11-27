@@ -110,6 +110,7 @@ public class CustomerPolicyService {
     @Transactional(readOnly = true)
     public DueSumResponse sumDue(long customerId, LocalDate today) {
         BigDecimal total = findDue(customerId, today).stream()
+                .filter(installment -> !installment.dueDate().isAfter(today))
                 .map(DueInstallmentResponse::amountDue)
                 .reduce(new BigDecimal("0.00"), BigDecimal::add);
         return new DueSumResponse(total);

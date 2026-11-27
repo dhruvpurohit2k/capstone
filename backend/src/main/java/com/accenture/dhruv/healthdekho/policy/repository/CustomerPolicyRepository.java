@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -35,6 +37,24 @@ public interface CustomerPolicyRepository extends JpaRepository<CustomerPolicy, 
             where policy.id = :policyId and policy.customer.id = :customerId
             """)
     Optional<CustomerPolicy> findOwnedPolicy(@Param("customerId") long customerId, @Param("policyId") long policyId);
+
+    @Query(value = """
+            with next_policy as (
+                select nextval(pg_get_serial_sequence('customer_policy', 'policy_id')) as id
+            )
+            insert into customer_policy (policy_id, policy_number, customer_id, product_id, start_date,
+                maturity_date, premium_frequency, premium_amount, sum_insured, total_premium_payable, status, created_at)
+            select id, concat(:numberPrefix, id), :customerId, :productId, :startDate, :maturityDate,
+                :frequency, :premiumAmount, :sumInsured, :totalPremium, 'ACTIVE', current_timestamp
+            from next_policy
+            on conflict (customer_id, product_id) do nothing
+            returning policy_id
+            """, nativeQuery = true)
+    Optional<Long> insertRegisteredPolicy(@Param("numberPrefix") String numberPrefix,
+                                          @Param("customerId") long customerId, @Param("productId") long productId,
+                                          @Param("startDate") LocalDate startDate, @Param("maturityDate") LocalDate maturityDate,
+                                          @Param("frequency") String frequency, @Param("premiumAmount") BigDecimal premiumAmount,
+                                          @Param("sumInsured") BigDecimal sumInsured, @Param("totalPremium") BigDecimal totalPremium);
 
     @Modifying
     @Query(value = "lock table customer_policy in share row exclusive mode", nativeQuery = true)
