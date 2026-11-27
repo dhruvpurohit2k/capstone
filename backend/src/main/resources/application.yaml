@@ -1,26 +1,32 @@
 spring:
   application:
     name: healthdekho
-  profiles:
-    default: development
+  datasource:
+    url: ${POSTGRES_URL}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
   jpa:
     open-in-view: false
+    hibernate:
+      ddl-auto: validate
   ai:
     model:
-      chat: ollama
-    ollama:
-      base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
-      chat:
-        options:
-          model: qwen3:8b
-          temperature: 0.2
-          format: json
+      chat: ${AI_CHAT_MODEL}
+    bedrock:
+      aws:
+        region: ${AWS_REGION}
+      converse:
+        chat:
+          options:
+            model: ${BEDROCK_CONVERSE_MODEL}
+            temperature: ${BEDROCK_TEMPERATURE}
+            max-tokens: ${BEDROCK_MAX_TOKENS}
 
 app:
   recommendation:
-    model-version: ${OLLAMA_MODEL_VERSION:}
+    model-version: ${BEDROCK_MODEL_VERSION:}
   jwt:
     secret: ${JWT_SECRET}
     access-token-ttl: ${JWT_ACCESS_TOKEN_TTL:PT15M}
     refresh-token-ttl: ${JWT_REFRESH_TOKEN_TTL:P7D}
-    secure-cookies: true
+    secure-cookies: ${JWT_SECURE_COOKIES:true}

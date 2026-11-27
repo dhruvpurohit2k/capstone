@@ -21,8 +21,11 @@
 # ----------------------------------------------------------------------------
 # Apache Maven Wrapper startup batch script, version 3.3.4
 #
-# Optional ENV vars
+# ENV vars
 # -----------------
+#   MAVEN_USER_HOME - custom .m2 directory, required
+#   M2_HOME - optional Maven installation to use instead of the wrapper distribution
+#   MAVEN_REPO_LOCAL - optional local repository override
 #   JAVA_HOME - location of a JDK home dir, required when download maven via java source
 #   MVNW_REPOURL - repo url base for downloading maven distribution
 #   MVNW_USERNAME/MVNW_PASSWORD - user and password for downloading maven
@@ -97,6 +100,24 @@ die() {
   exit 1
 }
 
+[ -n "${MAVEN_USER_HOME-}" ] || die "Set MAVEN_USER_HOME to your Maven user directory."
+
+exec_maven() {
+  if [ -f "$MAVEN_USER_HOME/settings.xml" ]; then
+    set -- --settings "$(native_path "$MAVEN_USER_HOME/settings.xml")" "$@"
+  fi
+  set -- "-Dmaven.repo.local=$(native_path "${MAVEN_REPO_LOCAL:-$MAVEN_USER_HOME/repository}")" "$@"
+  unset MVNW_VERBOSE MVNW_USERNAME MVNW_PASSWORD MVNW_REPOURL || :
+  exec "$MAVEN_HOME/bin/$MVN_CMD" "$@" || die "cannot exec $MAVEN_HOME/bin/$MVN_CMD"
+}
+
+if [ -n "${M2_HOME-}" ]; then
+  MAVEN_HOME="$M2_HOME"
+  MVN_CMD=mvn
+  [ -x "$MAVEN_HOME/bin/$MVN_CMD" ] || die "M2_HOME must point to a Maven installation with an executable bin/mvn."
+  exec_maven "$@"
+fi
+
 trim() {
   # MWRAPPER-139:
   #   Trims trailing and leading whitespace, carriage returns, tabs, and linefeeds.
@@ -137,18 +158,12 @@ maven-mvnd-*) MVN_CMD=mvnd.sh _MVNW_REPO_PATTERN=/maven/mvnd/ ;;
 esac
 
 # apply MVNW_REPOURL and calculate MAVEN_HOME
-# maven home pattern: ~/.m2/wrapper/dists/{apache-maven-<version>,maven-mvnd-<version>-<platform>}/<hash>
+# maven home pattern: MAVEN_USER_HOME/wrapper/dists/{apache-maven-<version>,maven-mvnd-<version>-<platform>}/<hash>
 [ -z "${MVNW_REPOURL-}" ] || distributionUrl="$MVNW_REPOURL$_MVNW_REPO_PATTERN${distributionUrl#*"$_MVNW_REPO_PATTERN"}"
 distributionUrlName="${distributionUrl##*/}"
 distributionUrlNameMain="${distributionUrlName%.*}"
 distributionUrlNameMain="${distributionUrlNameMain%-bin}"
-MAVEN_USER_HOME="${MAVEN_USER_HOME:-${HOME}/.m2}"
 MAVEN_HOME="${MAVEN_USER_HOME}/wrapper/dists/${distributionUrlNameMain-}/$(hash_string "$distributionUrl")"
-
-exec_maven() {
-  unset MVNW_VERBOSE MVNW_USERNAME MVNW_PASSWORD MVNW_REPOURL || :
-  exec "$MAVEN_HOME/bin/$MVN_CMD" "$@" || die "cannot exec $MAVEN_HOME/bin/$MVN_CMD"
-}
 
 if [ -d "$MAVEN_HOME" ]; then
   verbose "found existing MAVEN_HOME at $MAVEN_HOME"

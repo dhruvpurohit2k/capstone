@@ -20,10 +20,10 @@ export default function AvailablePolicyTable<T extends AvailablePolicy>({
             <th scope="col">Product code</th>
             <th scope="col">Policy name</th>
             <th scope="col">Policy type</th>
-            <th scope="col">Term</th>
+            <th scope="col">Policy term</th>
             <th scope="col">Sum insured</th>
             <th scope="col">Premium frequency</th>
-            <th scope="col">Premium per installment</th>
+            <th scope="col">Premium amount</th>
             {recommendation && (
               <>
                 <th scope="col">Recommendation reason</th>

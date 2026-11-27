@@ -66,7 +66,7 @@ Business Objective: Generate personalized, explainable insurance product recomme
 
 Date of Birth (DOB). Age is calculated from the signed-in customer's account date of birth. If supplied, the date must match the account.
 
-Insurance Goals and Preferences. The frontend includes any preferred payment frequency in this text.
+Insurance Goals and Preferences
 
 Preferred Policy Term, entered in whole months.
 

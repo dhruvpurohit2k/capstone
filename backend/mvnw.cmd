@@ -21,12 +21,19 @@
 @REM ----------------------------------------------------------------------------
 @REM Apache Maven Wrapper startup batch script, version 3.3.4
 @REM
-@REM Optional ENV vars
+@REM ENV vars
+@REM   MAVEN_USER_HOME - custom .m2 directory, required
+@REM   M2_HOME - optional Maven installation to use instead of the wrapper distribution
+@REM   MAVEN_REPO_LOCAL - optional local repository override
 @REM   MVNW_REPOURL - repo url base for downloading maven distribution
 @REM   MVNW_USERNAME/MVNW_PASSWORD - user and password for downloading maven
 @REM   MVNW_VERBOSE - true: enable verbose log; others: silence the output
 @REM ----------------------------------------------------------------------------
 
+@IF NOT DEFINED MAVEN_USER_HOME (
+  @echo Set MAVEN_USER_HOME to your Maven user directory. >&2
+  @exit /b 1
+)
 @IF "%__MVNW_ARG0_NAME__%"=="" (SET __MVNW_ARG0_NAME__=%~nx0)
 @SET __MVNW_CMD__=
 @SET __MVNW_ERROR__=
@@ -40,14 +47,32 @@
 @SET __MVNW_ARG0_NAME__=
 @SET MVNW_USERNAME=
 @SET MVNW_PASSWORD=
-@IF NOT "%__MVNW_CMD__%"=="" ("%__MVNW_CMD__%" %*)
-@echo Cannot start maven from wrapper >&2 && exit /b 1
+@IF "%__MVNW_CMD__%"=="" (
+  @echo Cannot start maven from wrapper >&2
+  @exit /b 1
+)
+@SETLOCAL
+@IF NOT DEFINED MAVEN_REPO_LOCAL SET "MAVEN_REPO_LOCAL=%MAVEN_USER_HOME%\repository"
+@IF EXIST "%MAVEN_USER_HOME%\settings.xml" (
+  "%__MVNW_CMD__%" "-Dmaven.repo.local=%MAVEN_REPO_LOCAL%" --settings "%MAVEN_USER_HOME%\settings.xml" %*
+) ELSE (
+  "%__MVNW_CMD__%" "-Dmaven.repo.local=%MAVEN_REPO_LOCAL%" %*
+)
 @GOTO :EOF
 : end batch / begin powershell #>
 
 $ErrorActionPreference = "Stop"
 if ($env:MVNW_VERBOSE -eq "true") {
   $VerbosePreference = "Continue"
+}
+
+if ($env:M2_HOME) {
+  $mavenCommand = Join-Path $env:M2_HOME "bin/mvn.cmd"
+  if (!(Test-Path -LiteralPath $mavenCommand -PathType Leaf)) {
+    Write-Error "M2_HOME must point to a Maven installation with bin/mvn.cmd."
+  }
+  Write-Output "MVN_CMD=$mavenCommand"
+  exit 0
 }
 
 # calculate distributionUrl, requires .mvn/wrapper/maven-wrapper.properties
@@ -71,7 +96,7 @@ switch -wildcard -casesensitive ( $($distributionUrl -replace '^.*/','') ) {
 }
 
 # apply MVNW_REPOURL and calculate MAVEN_HOME
-# maven home pattern: ~/.m2/wrapper/dists/{apache-maven-<version>,maven-mvnd-<version>-<platform>}/<hash>
+# maven home pattern: MAVEN_USER_HOME/wrapper/dists/{apache-maven-<version>,maven-mvnd-<version>-<platform>}/<hash>
 if ($env:MVNW_REPOURL) {
   $MVNW_REPO_PATTERN = if ($USE_MVND -eq $False) { "/org/apache/maven/" } else { "/maven/mvnd/" }
   $distributionUrl = "$env:MVNW_REPOURL$MVNW_REPO_PATTERN$($distributionUrl -replace "^.*$MVNW_REPO_PATTERN",'')"
@@ -79,10 +104,7 @@ if ($env:MVNW_REPOURL) {
 $distributionUrlName = $distributionUrl -replace '^.*/',''
 $distributionUrlNameMain = $distributionUrlName -replace '\.[^.]*$','' -replace '-bin$',''
 
-$MAVEN_M2_PATH = "$HOME/.m2"
-if ($env:MAVEN_USER_HOME) {
-  $MAVEN_M2_PATH = "$env:MAVEN_USER_HOME"
-}
+$MAVEN_M2_PATH = $env:MAVEN_USER_HOME
 
 if (-not (Test-Path -Path $MAVEN_M2_PATH)) {
     New-Item -Path $MAVEN_M2_PATH -ItemType Directory | Out-Null

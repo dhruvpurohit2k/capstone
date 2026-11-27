@@ -1,8 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { getRecommendations } from '../../api/recommendation.ts'
-import { formatLabel } from '../policy/formatPolicy.ts'
 import AvailablePolicyTable from '../policy/AvailablePolicyTable.tsx'
-import { premiumFrequencySchema } from '../policy/schemas/policyResponses.ts'
 import type { RecommendedPolicy } from './schemas/recommendationResponses.ts'
 
 type Props = {
@@ -26,24 +24,21 @@ export default function RecommendationPage({ token, registeredProducts, onSignOu
     const form = new FormData(event.currentTarget)
     const dateOfBirth = String(form.get('dateOfBirth'))
     const insuranceGoals = String(form.get('insuranceGoals')).trim()
-    const preferredFrequency = String(form.get('preferredFrequency'))
     const preferredTerm = String(form.get('preferredTermMonths'))
     const preferredPolicyType = String(form.get('preferredPolicyType')).trim()
     setResults(null)
     setError('')
     setBirthDateError('')
-    if (!dateOfBirth && !insuranceGoals && !preferredFrequency && !preferredTerm && !preferredPolicyType) {
+    if (!dateOfBirth && !insuranceGoals && !preferredTerm && !preferredPolicyType) {
       setError('Fill in at least one recommendation field.')
       return
     }
     setLoading(true)
 
     try {
-      const preferences = [insuranceGoals]
-      if (preferredFrequency) preferences.push(`Preferred premium frequency: ${formatLabel(preferredFrequency)}.`)
       const response = await getRecommendations(token, {
         dateOfBirth: dateOfBirth || undefined,
-        insuranceGoals: preferences.filter(Boolean).join('\n') || undefined,
+        insuranceGoals: insuranceGoals || undefined,
         preferredTermMonths: preferredTerm ? Number(preferredTerm) : undefined,
         preferredPolicyType: preferredPolicyType || undefined,
       })
@@ -67,32 +62,22 @@ export default function RecommendationPage({ token, registeredProducts, onSignOu
       <form className="registration-card recommendation-form" onSubmit={submit}>
         <h2>What are you looking for?</h2>
         <p className="muted">Fill in at least one field.</p>
-        <label>Insurance goals
-          <textarea name="insuranceGoals" rows={3} maxLength={950} placeholder="For example, cover my family’s medical expenses" />
+        <label>Date of birth (DOB)
+          <span className="field-hint" id="recommendation-dob-hint">Optional. Any date entered must match your account date of birth.</span>
+          <input name="dateOfBirth" type="date" max={localToday} aria-invalid={Boolean(birthDateError)}
+            aria-describedby={birthDateError ? 'recommendation-dob-hint recommendation-dob-error' : 'recommendation-dob-hint'}
+            onChange={() => setBirthDateError('')} />
+          {birthDateError && <span className="field-error" id="recommendation-dob-error" role="alert">{birthDateError}</span>}
         </label>
-        <div className="form-row">
-          <label>Preferred payment frequency
-            <select name="preferredFrequency">
-              <option value="">Any frequency</option>
-              {premiumFrequencySchema.options.map((frequency) => (
-                <option key={frequency} value={frequency}>{formatLabel(frequency)}</option>
-              ))}
-            </select>
-          </label>
-          <label>Preferred policy type
-            <input name="preferredPolicyType" maxLength={32} placeholder="For example, Health" />
-          </label>
-        </div>
+        <label>Insurance goals and preferences
+          <textarea name="insuranceGoals" rows={3} maxLength={1000} placeholder="For example, cover my family’s medical expenses" />
+        </label>
         <div className="form-row">
           <label>Preferred policy term (months)
             <input name="preferredTermMonths" type="number" min={1} max={2_147_483_647} step={1} />
           </label>
-          <label>Date of birth
-            <span className="field-hint" id="recommendation-dob-hint">Optional. Any date entered must match your account date of birth.</span>
-            <input name="dateOfBirth" type="date" max={localToday} aria-invalid={Boolean(birthDateError)}
-              aria-describedby={birthDateError ? 'recommendation-dob-hint recommendation-dob-error' : 'recommendation-dob-hint'}
-              onChange={() => setBirthDateError('')} />
-            {birthDateError && <span className="field-error" id="recommendation-dob-error" role="alert">{birthDateError}</span>}
+          <label>Insurance type
+            <input name="preferredPolicyType" maxLength={32} placeholder="For example, Health" />
           </label>
         </div>
         <button type="submit" className="primary-button registration-action" disabled={loading}>

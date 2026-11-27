@@ -34,7 +34,7 @@ public class RecommendationModel {
     private final String modelVersion;
 
     public RecommendationModel(ObjectProvider<ChatModel> models, ObjectMapper mapper,
-                               @Value("${spring.ai.ollama.chat.options.model:}") String modelName,
+                               @Value("${spring.ai.bedrock.converse.chat.options.model}") String modelName,
                                @Value("${app.recommendation.model-version:}") String modelVersion) {
         this.models = models;
         this.mapper = mapper;
